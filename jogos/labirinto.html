@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5">
+    <title>SHUCKLE · Labirinto</title>
+    <style>
+        /* ── FONTE ── */
+        @font-face {
+            font-family: 'Comic';
+            src: url('../fontes/comicbd.woff2') format('woff2');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        /* ── RESET & BASE ── */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Comic', 'Arial', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            min-height: 100vh;
+            background-color: #fdf8f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            overflow: hidden;
+        }
+
+        /* ── FUNDO ANIMADO (do global.css) ── */
+        body::before,
+        body::after {
+            content: '';
+            position: fixed;
+            inset: -200px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        body::before {
+            background-image:
+                radial-gradient(circle at 50px 70px,  #ffeacb 3px, transparent 3px),
+                radial-gradient(circle at 80px 120px, #ffddb0 4px, transparent 4px);
+            background-size: 120px 80px, 200px 200px;
+            animation: driftSlow 18s linear infinite;
+        }
+
+        body::after {
+            background-image:
+                radial-gradient(circle at 200px 40px,  #f5d5b0 5px, transparent 5px),
+                radial-gradient(circle at 350px 280px, #f0cfaa 6px, transparent 6px),
+                radial-gradient(circle at 700px 180px, #f5dcc0 7px, transparent 7px);
+            background-size: 300px 300px, 400px 400px, 250px 250px;
+            animation: driftFast 18s linear infinite;
+        }
+
+        @keyframes driftSlow {
+            from { transform: translate(0, 0); }
+            to   { transform: translate(-200px, -54px); }
+        }
+
+        @keyframes driftFast {
+            from { transform: translate(0, 0); }
+            to   { transform: translate(-300px, -80px); }
+        }
+
+        /* ── Z-INDEX GERAL ── */
+        .main-panel, .header, [class] {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ── PAINEL PRINCIPAL ── */
+        .main-panel {
+            background-color: rgba(247, 239, 226, 0.85);
+            backdrop-filter: blur(3px);
+            border-radius: 50px 50px 40px 40px;
+            box-shadow:
+                0 20px 30px rgba(0,0,0,0.08),
+                inset 0 2px 5px rgba(255,255,255,0.8);
+            width: 650px;
+            max-width: 98%;
+            padding: 20px 20px 30px 20px;
+            border: 5px solid rgba(255,255,200,0.6);
+        }
+
+        /* ── HEADER ── */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .logo-placeholder {
+            width: 10px;
+            height: 10px;
+        }
+
+        .shuckle-title {
+            font-size: 4rem;
+            font-weight: 800;
+            line-height: 1;
+            text-shadow: 5px 5px 0 rgba(0,0,0,0.05);
+        }
+
+        .s-letter { color: #e63946; }
+        .h-letter { color: #3498db; }
+        .u-letter { color: #2ecc71; }
+        .c-letter { color: #f1c40f; }
+        .k-letter { color: #3498db; }
+        .l-letter { color: #2ecc71; }
+        .e-letter { color: #e84342; }
+
+        .header-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-header {
+            background: #1e91dd;
+            border: 2px solid white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: white;
+            box-shadow: 0 4px 0 #196cca;
+            cursor: pointer;
+            transition: 0.1s;
+        }
+
+        .btn-header:hover { transform: translateY(-2px); }
+        .btn-header:active { transform: translateY(3px); box-shadow: 0 1px 0 #196cca; }
+
+        .header-icon {
+            width: 29px;
+            height: 29px;
+            object-fit: contain;
+        }
+
+        /* ── TELA DO JOGO ── */
+        .maze-game-screen {
+            background: rgba(255,250,240,0.9);
+            border-radius: 40px;
+            padding: 20px 15px;
+            border: 4px solid #1e91dd;
+        }
+
+        /* ── STATS HEADER ── */
+        .maze-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #ffffff;
+            padding: 10px 20px;
+            border-radius: 40px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 8px;
+            border: 4px solid #1e91dd;
+        }
+
+        .stat-pill {
+            background: #ffffff;
+            padding: 5px 16px;
+            border-radius: 30px;
+            text-align: center;
+            border: 3px solid #1e91dd;
+        }
+
+        .stat-value {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #2c3e50;
+            line-height: 1.1;
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .level-badge {
+            background: #1e91dd;
+            color: white;
+            border-radius: 30px;
+            padding: 6px 18px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            border: 3px solid white;
+            box-shadow: 0 4px 0 #196cca;
+        }
+
+        /* ── CANVAS ── */
+        .maze-container {
+            display: flex;
+            justify-content: center;
+            margin: 15px 0;
+        }
+
+        canvas {
+            border: 5px solid #1e91dd;
+            border-radius: 20px;
+            box-shadow: 0 6px 0 #196cca, inset 0 0 20px rgba(46,204,113,0.08);
+            background: #fff8e7;
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* ── MENSAGEM ── */
+        .message-area {
+            background: white;
+            border-radius: 70px;
+            padding: 14px 20px;
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border: 4px solid #1e91dd;
+            margin: 12px 0;
+            color: #2c3e50;
+        }
+
+        /* ── BOTÕES PRINCIPAIS ── */
+        .controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 12px 0;
+        }
+
+        .btn {
+            background: #1e91dd;
+            border: 3px solid white;
+            padding: 14px 28px;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: bold;
+            color: white;
+            box-shadow: 0 6px 0 #196cca;
+            cursor: pointer;
+            transition: 0.1s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn:hover  { transform: translateY(-3px); box-shadow: 0 9px 0 #196cca; }
+        .btn:active { transform: translateY(4px);  box-shadow: 0 2px 0 #196cca; }
+
+        /* ── D-PAD ── */
+        .btn-directional {
+            display: grid;
+            grid-template-columns: repeat(3, 60px);
+            grid-template-rows: repeat(2, 60px);
+            gap: 5px;
+            justify-content: center;
+            margin: 10px 0 0;
+        }
+
+        .btn-dir {
+            width: 60px;
+            height: 60px;
+            background: #1e91dd;
+            border: 3px solid white;
+            border-radius: 16px;
+            color: white;
+            font-size: 1.6rem;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #196cca;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.1s;
+        }
+
+        .btn-dir:active {
+            transform: translateY(4px);
+            box-shadow: 0 1px 0 #196cca;
+        }
+
+        .btn-dir.empty {
+            background: transparent;
+            border: none;
+            box-shadow: none;
+            cursor: default;
+            pointer-events: none;
+        }
+
+        /* ── OVERLAY DE VITÓRIA ── */
+        .victory-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 10;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .victory-modal {
+            background: rgba(255,255,255,0.97);
+            backdrop-filter: blur(10px);
+            border-radius: 50px;
+            padding: 40px 35px;
+            text-align: center;
+            border: 6px solid #1e91dd;
+            box-shadow: 0 10px 0 #196cca, 0 20px 40px rgba(0,0,0,0.15);
+            max-width: 380px;
+            width: 90%;
+        }
+
+        .victory-modal .icon {
+            font-size: 4rem;
+            margin-bottom: 10px;
+        }
+
+        .victory-modal h2 {
+            font-size: 2rem;
+            color: #2c3e50;
+            margin-bottom: 12px;
+        }
+
+        .victory-modal p {
+            font-size: 1.1rem;
+            color: #7f8c8d;
+            margin-bottom: 20px;
+        }
+
+        /* ── RESPONSIVO ── */
+        @media (max-width: 600px) {
+            .shuckle-title { font-size: 2.8rem; }
+
+            .maze-header { font-size: 1rem; padding: 8px 12px; }
+
+            .btn-directional {
+                grid-template-columns: repeat(3, 52px);
+                grid-template-rows: repeat(2, 52px);
+            }
+
+            .btn-dir {
+                width: 52px;
+                height: 52px;
+                font-size: 1.3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<audio id="bgMusic" loop>
+  <source src="../musicas/audio.mp3" type="audio/mpeg">
+</audio>
+<div class="main-panel">
+
+    <!-- ── HEADER ── -->
+    <div class="header">
+        <div class="logo-placeholder"></div>
+        <div class="shuckle-title">
+            <span class="s-letter">S</span><span class="h-letter">H</span><span class="u-letter">U</span><span class="c-letter">C</span><span class="k-letter">K</span><span class="l-letter">L</span><span class="e-letter">E</span>
+        </div>
+        <div class="header-buttons">
+            <button class="btn-header" id="btnBack" title="Voltar" onclick="voltarParaHome()">
+                <img src="../img/voltar.png" alt="Voltar" class="header-icon">
+            </button>
+            <button class="btn-header" onclick="irConfiguracoes()" title="Configurações">
+                <img src="../img/configuracoes.png" alt="Configurações" class="header-icon">
+            </button>
+        </div>
+    </div>
+
+    <!-- ── TELA DO JOGO ── -->
+    <div class="maze-game-screen">
+
+        <!-- Stats bar -->
+        <div class="maze-header">
+            <div class="level-badge">Fase <span id="levelNumber">1</span></div>
+            <div class="stat-pill">
+                <div class="stat-value" id="movesCount">0</div>
+                <div class="stat-label">Movimentos</div>
+            </div>
+            <div class="stat-pill">
+                <div class="stat-value" id="timeDisplay">00:00</div>
+                <div class="stat-label">Tempo</div>
+            </div>
+            <div class="stat-pill">
+                <div class="stat-value" id="bestScore">--</div>
+                <div class="stat-label">Recorde</div>
+            </div>
+        </div>
+
+        <!-- Canvas -->
+        <div class="maze-container">
+            <canvas id="mazeCanvas" width="500" height="500"></canvas>
+        </div>
+
+        <!-- Mensagem -->
+        <div class="message-area" id="messageBox">
+            Use as setas ou os botões para mover o Shuckle até a saída 🍎
+        </div>
+
+        <!-- Botões de ação -->
+        <div class="controls">
+            <button class="btn" onclick="resetLevel()">🔄 Reiniciar</button>
+        </div>
+
+        <!-- D-Pad -->
+        <div class="btn-directional">
+            <div class="btn-dir empty"></div>
+            <button class="btn-dir" onclick="movePlayer('up')">▲</button>
+            <div class="btn-dir empty"></div>
+            <button class="btn-dir" onclick="movePlayer('left')">◀</button>
+            <button class="btn-dir" onclick="movePlayer('down')">▼</button>
+            <button class="btn-dir" onclick="movePlayer('right')">▶</button>
+        </div>
+
+    </div><!-- /maze-game-screen -->
+</div><!-- /main-panel -->
+
+<!-- ── OVERLAY DE VITÓRIA ── -->
+<div class="victory-overlay" id="victoryOverlay">
+    <div class="victory-modal">
+        <div class="icon">🎉</div>
+        <h2>Fase Concluída!</h2>
+        <p id="victoryMessage"></p>
+        <button class="btn" onclick="nextLevel()">▶ Próxima Fase</button>
+    </div>
+</div>
+
+<script src="../audio.js"></script>
+<script>
+    const canvas = document.getElementById('mazeCanvas');
+    const ctx    = canvas.getContext('2d');
+
+    let maze          = null;
+    let playerPos     = { x: 0, y: 0 };
+    let exitPos       = { x: 0, y: 0 };
+    let currentLevel  = 1;
+    let moves         = 0;
+    let seconds       = 0;
+    let timerInterval = null;
+    let bestScores    = {};
+    let gameActive    = false;
+
+    function getLevelConfig(level) {
+        return {
+            size:            Math.min(7 + level * 2, 31),
+            timeLimit:       30 + level * 15,
+            scoreMultiplier: 1 + level * 0.5
+        };
+    }
+
+    function generateMaze(width, height) {
+        const grid = [];
+        for (let y = 0; y < height; y++) {
+            const row = [];
+            for (let x = 0; x < width; x++) {
+                row.push({ x, y, walls: [true, true, true, true], visited: false });
+            }
+            grid.push(row);
+        }
+
+        function getUnvisitedNeighbors(cell) {
+            const { x, y } = cell;
+            const neighbors = [];
+            if (y > 0          && !grid[y-1][x].visited) neighbors.push({ cell: grid[y-1][x], wall: 0, oppositeWall: 2 });
+            if (x < width-1    && !grid[y][x+1].visited) neighbors.push({ cell: grid[y][x+1], wall: 1, oppositeWall: 3 });
+            if (y < height-1   && !grid[y+1][x].visited) neighbors.push({ cell: grid[y+1][x], wall: 2, oppositeWall: 0 });
+            if (x > 0          && !grid[y][x-1].visited) neighbors.push({ cell: grid[y][x-1], wall: 3, oppositeWall: 1 });
+            return neighbors.sort(() => Math.random() - 0.5);
+        }
+
+        const stack     = [];
+        const startCell = grid[0][0];
+        startCell.visited = true;
+        stack.push(startCell);
+
+        while (stack.length > 0) {
+            const current   = stack[stack.length - 1];
+            const neighbors = getUnvisitedNeighbors(current);
+            if (neighbors.length > 0) {
+                const next = neighbors[0];
+                next.cell.visited = true;
+                current.walls[next.wall]             = false;
+                next.cell.walls[next.oppositeWall]   = false;
+                stack.push(next.cell);
+            } else {
+                stack.pop();
+            }
+        }
+
+        const exit = grid[height-1][width-1];
+        if (exit.walls[2]) exit.walls[2] = false;
+        return grid;
+    }
+
+    function goBack() {
+    if (screenGame.style.display === 'flex') { goToSelect(); }
+    else if (screenWin.style.display === 'flex') { goToSelect(); }
+    else {
+        /* voltar para o menu principal do SHUCKLE */
+        history.back();
+    }
+}
+
+    function ensurePathExists(maze, startX, startY, exitX, exitY) {
+        const visited = new Set();
+        const stack   = [{ x: startX, y: startY }];
+        visited.add(`${startX},${startY}`);
+
+        while (stack.length > 0) {
+            const { x, y } = stack.pop();
+            if (x === exitX && y === exitY) return true;
+            const cell = maze[y][x];
+            const dirs = [
+                { dx:  0, dy: -1, wall: 0 },
+                { dx:  1, dy:  0, wall: 1 },
+                { dx:  0, dy:  1, wall: 2 },
+                { dx: -1, dy:  0, wall: 3 }
+            ];
+            for (const dir of dirs) {
+                if (!cell.walls[dir.wall]) {
+                    const nx  = x + dir.dx;
+                    const ny  = y + dir.dy;
+                    const key = `${nx},${ny}`;
+                    if (nx >= 0 && nx < maze[0].length && ny >= 0 && ny < maze.length && !visited.has(key)) {
+                        visited.add(key);
+                        stack.push({ x: nx, y: ny });
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    function initLevel(level) {
+        const config = getLevelConfig(level);
+        const size   = config.size % 2 === 0 ? config.size + 1 : config.size;
+
+        let attempts = 0;
+        do {
+            maze = generateMaze(size, size);
+            attempts++;
+            if (attempts > 50) break;
+        } while (!ensurePathExists(maze, 0, 0, size-1, size-1));
+
+        playerPos  = { x: 0, y: 0 };
+        exitPos    = { x: size-1, y: size-1 };
+        moves      = 0;
+        seconds    = 0;
+        gameActive = true;
+
+        updateStats();
+        startTimer();
+        drawMaze();
+
+        document.getElementById('levelNumber').textContent = level;
+        document.getElementById('messageBox').textContent  =
+            `Fase ${level} — encontre a saída! Tamanho: ${size}×${size}`;
+        document.getElementById('victoryOverlay').style.display = 'none';
+    }
+
+    function drawMaze() {
+        if (!maze) return;
+
+        const cols     = maze[0].length;
+        const rows     = maze.length;
+        const cellSize = Math.floor(canvas.width / cols);
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        for (let y = 0; y < rows; y++) {
+            for (let x = 0; x < cols; x++) {
+                const cell = maze[y][x];
+                const px   = x * cellSize;
+                const py   = y * cellSize;
+
+                ctx.fillStyle = (x + y) % 2 === 0 ? '#f0fdf5' : '#e8faf0';
+                ctx.fillRect(px, py, cellSize, cellSize);
+
+                ctx.strokeStyle = '#27ae60';
+                ctx.lineWidth   = 2;
+                ctx.lineCap     = 'round';
+
+                if (cell.walls[0]) { ctx.beginPath(); ctx.moveTo(px, py);             ctx.lineTo(px + cellSize, py);             ctx.stroke(); }
+                if (cell.walls[1]) { ctx.beginPath(); ctx.moveTo(px + cellSize, py);  ctx.lineTo(px + cellSize, py + cellSize);  ctx.stroke(); }
+                if (cell.walls[2]) { ctx.beginPath(); ctx.moveTo(px, py + cellSize);  ctx.lineTo(px + cellSize, py + cellSize);  ctx.stroke(); }
+                if (cell.walls[3]) { ctx.beginPath(); ctx.moveTo(px, py);             ctx.lineTo(px, py + cellSize);             ctx.stroke(); }
+            }
+        }
+
+        // Saída (maçã vermelha)
+        const ex = exitPos.x * cellSize + cellSize / 2;
+        const ey = exitPos.y * cellSize + cellSize / 2;
+        ctx.fillStyle = '#e63946';
+        ctx.beginPath();
+        ctx.arc(ex, ey, cellSize * 0.3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#1e91dd';
+        ctx.fillRect(ex - cellSize * 0.05, ey - cellSize * 0.4, cellSize * 0.1, cellSize * 0.2);
+
+        // Jogador (Shuckle)
+        const px = playerPos.x * cellSize + cellSize / 2;
+        const py = playerPos.y * cellSize + cellSize / 2;
+        ctx.fillStyle = '#d4a76a';
+        ctx.beginPath();
+        ctx.arc(px, py, cellSize * 0.35, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#8b7355';
+        ctx.beginPath();
+        ctx.arc(px, py, cellSize * 0.2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = 'white';
+        ctx.beginPath();
+        ctx.arc(px - cellSize * 0.08, py - cellSize * 0.05, cellSize * 0.06, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(px + cellSize * 0.08, py - cellSize * 0.05, cellSize * 0.06, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    function movePlayer(direction) {
+        if (!gameActive || !maze) return;
+
+        const cell = maze[playerPos.y][playerPos.x];
+        let newX   = playerPos.x;
+        let newY   = playerPos.y;
+
+        switch (direction) {
+            case 'up':    if (!cell.walls[0]) newY--; break;
+            case 'right': if (!cell.walls[1]) newX++; break;
+            case 'down':  if (!cell.walls[2]) newY++; break;
+            case 'left':  if (!cell.walls[3]) newX--; break;
+        }
+
+        if (newX !== playerPos.x || newY !== playerPos.y) {
+            playerPos.x = newX;
+            playerPos.y = newY;
+            moves++;
+            updateStats();
+            drawMaze();
+            if (playerPos.x === exitPos.x && playerPos.y === exitPos.y) levelComplete();
+        }
+    }
+
+    function levelComplete() {
+        gameActive = false;
+        clearInterval(timerInterval);
+
+        const config = getLevelConfig(currentLevel);
+        const score  = Math.max(0, Math.floor((config.timeLimit - seconds) * config.scoreMultiplier * 10));
+
+        if (!bestScores[currentLevel] || moves < bestScores[currentLevel].moves) {
+            bestScores[currentLevel] = { moves, time: seconds, score };
+        }
+
+        document.getElementById('victoryMessage').textContent =
+            `Movimentos: ${moves} · Tempo: ${formatTime(seconds)} · Pontuação: ${score}`;
+        document.getElementById('victoryOverlay').style.display = 'flex';
+        document.getElementById('messageBox').textContent = '🎉 Você encontrou a saída!';
+        updateStats();
+    }
+
+    function nextLevel()  { currentLevel++; initLevel(currentLevel); }
+
+    function resetLevel() { clearInterval(timerInterval); initLevel(currentLevel); }
+
+    function newGame() {
+        clearInterval(timerInterval);
+        currentLevel = 1;
+        moves        = 0;
+        seconds      = 0;
+        bestScores   = {};
+        initLevel(1);
+        document.getElementById('messageBox').textContent = 'Novo jogo iniciado! Boa sorte 🍀';
+    }
+    function voltarParaHome() {
+    window.location.href = '../assets/index.html';
+    // ou
+    // window.location.href = '/assets/index.html';
+}
+
+    function irConfiguracoes() { window.location.href = '../assets/configuracoes.html'; }
+
+    function startTimer() {
+        clearInterval(timerInterval);
+        seconds       = 0;
+        timerInterval = setInterval(() => { if (gameActive) { seconds++; updateStats(); } }, 1000);
+    }
+
+    function updateStats() {
+        document.getElementById('movesCount').textContent  = moves;
+        document.getElementById('timeDisplay').textContent = formatTime(seconds);
+        document.getElementById('bestScore').textContent   =
+            bestScores[currentLevel] ? `${bestScores[currentLevel].moves} mov` : '--';
+    }
+
+    function formatTime(total) {
+        const m = Math.floor(total / 60);
+        const s = total % 60;
+        return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    }
+
+    document.addEventListener('keydown', e => {
+        if (!gameActive) return;
+        const map = { ArrowUp:'up', w:'up', W:'up', ArrowRight:'right', d:'right', D:'right',
+                      ArrowDown:'down', s:'down', S:'down', ArrowLeft:'left', a:'left', A:'left' };
+        if (map[e.key]) { e.preventDefault(); movePlayer(map[e.key]); }
+    });
+
+    initLevel(1);
+    document.getElementById('messageBox').textContent = 'Use as setas ou os botões para mover o Shuckle até a saída 🍎';
+
+const music = document.getElementById('bgMusic');
+
+function startMusic() {
+
+    if (!somEstaAtivo()) {
+        return;
+    }
+
+    music.volume = volumeMusica();
+
+    music.play()
+
+        .then(() => {
+            document.removeEventListener('click', startMusic);
+            document.removeEventListener('touchstart', startMusic);
+            document.removeEventListener('keydown', startMusic);
+        })
+
+        .catch(err => {
+            console.warn('Não foi possível tocar o áudio:', err);
+        });
+}
+
+document.addEventListener('click', startMusic);
+document.addEventListener('touchstart', startMusic);
+document.addEventListener('keydown', startMusic);
+
+</script>
+</body>
+</html>

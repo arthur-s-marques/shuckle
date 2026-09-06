@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/style.css">
+    <title>SHUCKLE</title>
+    <style>
+    
+    </style>
+</head>
+<body>
+
+    <audio id="bgMusic" loop>
+  <source src="../musicas/audio.mp3" type="audio/mpeg">
+</audio>
+
+        <!-- TELA INICIAL (sempre visível, mas podemos esconder com JS) -->
+        <div id="telaInicial">
+            <div class="header">
+                <div class="logo-placeholder" id="logoSpot"><img src="../img/Shuckle.png" alt="SHUCKLE" width="97" height="97"><br></div>
+                <div class="shuckle-title">
+                    <span class="s-letter">S</span><span class="h-letter">H</span><span class="u-letter">U</span><span class="c-letter">C</span><span class="k-letter">K</span><span class="l-letter">L</span><span class="e-letter">E</span>
+                </div>
+            </div>
+
+
+            <div class="games-grid" id="menuJogos">
+    <div class="game-card" style="--tempo: 2.9s; --atraso: -1s;" data-game="memoria" data-url="../jogos/memoria.html">
+    <img src="../img/cerebro.png" alt="Memória" class="card-icon">
+    <span>Memória</span>
+    </div>
+    <div class="game-card" style="--tempo: 2.8s; --atraso: 0.3s;" data-game="labirinto" data-url="../jogos/labirinto.html">
+        <img src="../img/labirinto.png" alt="Labirinto" class="card-icon">
+        <span>Labirinto</span>
+    </div>
+    <div class="game-card" style="--tempo: 2.9s; --atraso: -1s;" data-game="matematica" data-url="../jogos/matematica.html">
+        <img src="../img/matematica.png" alt="Matemática" class="card-icon">
+        <span>Matemática</span>
+    </div>
+    <div class="game-card" style="--tempo: 2.7s; --atraso: -0.2s;" data-game="quebra" data-url="../jogos/quebra.html">
+        <img src="../img/quebra.png" alt="Quebra-cabeça" class="card-icon">
+        <span>Quebra-cabeça</span>
+    </div>
+    <div class="game-card" style="--tempo: 2.8s; --atraso: -0.2s;" data-game="reflexo" data-url="../jogos/reflexo.html">
+        <img src="../img/raio.png" alt="Reflexo" class="card-icon">
+        <span>Reflexo</span>
+    </div>
+    <div class="game-card" style="--tempo: 2.84s; --atraso: 0.4s;" data-game="piano" data-url="../jogos/piano.html">
+        <img src="../img/piano.png" alt="Piano" class="card-icon">
+        <span>Piano</span>
+    </div>
+</div>
+    <div class="message-area" id="messageBox">
+        <button class="btn-header" id="btnSettings" onclick="irConfiguracoes()" style="background:#e09913; box-shadow: 0 4px 0 #b87c0d;" title="Configurações">
+            <img src="../img/configuracoes.png" alt="Configurações" class="header-icon">
+        </button>
+    </span>⭐ Que jogo vamos jogar hoje? ⭐</div>
+        
+    </div>
+        <script src="js/script.js"></script>
+        <script src="global.js"></script>
+        <script src="../audio.js"></script>
+        <script>
+const music = document.getElementById('bgMusic');
+
+
+function startMusic() {
+
+    if (!somEstaAtivo()) {
+        return;
+    }
+
+    music.volume = volumeMusica();
+
+    music.play()
+
+        .then(() => {
+            document.removeEventListener('click', startMusic);
+            document.removeEventListener('touchstart', startMusic);
+            document.removeEventListener('keydown', startMusic);
+        })
+
+        .catch(err => {
+            console.warn('Não foi possível tocar o áudio:', err);
+        });
+}
+
+document.addEventListener('click', startMusic);
+document.addEventListener('touchstart', startMusic);
+document.addEventListener('keydown', startMusic);
+        </script>
+</body>
+</html>

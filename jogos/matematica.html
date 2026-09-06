@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5">
+<link rel="stylesheet" href="global.css">
+<title>SHUCKLE · Matemática divertida</title>
+<style>
+/* PAINEL */
+/* CABEÇALHO */
+/* ÁREA DO JOGO */
+
+:root {
+
+    /* PRINCIPAIS */
+    --cor-primaria: #2ecc71;
+    --cor-primaria-sombra: #089131;
+    --cor-primaria-sombra-escura: #1e8b4c;
+
+    /* SECUNDÁRIAS */
+    --cor-fundo-jogo: rgba(255,250,240,0.9);
+    --cor-branco: #ffffff;
+    --cor-texto: #2c3e50;
+}
+
+.math-game-screen{
+    background:rgba(255,250,240,0.9);
+    border-radius:40px;
+    padding:20px 15px;
+    border:4px solid #2ecc71;
+}
+
+/* HEADER DO JOGO */
+.btn-header {
+    background: #2ecc71;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 30px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: white;
+    box-shadow: 0 4px 0 #089131;
+    cursor: pointer;
+    border: 2px solid white;
+    transition: 0.1s;
+}
+
+.math-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    background:#ffffff;
+    padding:10px 20px;
+    border-radius:40px;
+    font-size:1.7rem;
+    font-weight:bold;
+    margin-bottom:20px;
+    flex-wrap:wrap;
+    border:4px solid #2ecc71;
+}
+
+.vidas span{
+    margin:0 5px;
+    font-size:2rem;
+}
+
+.progresso{
+    background:#ffffff;
+    padding:5px 20px;
+    border-radius:30px;
+}
+
+/* QUESTÃO */
+
+.questao-container{
+    background:white;
+    border-radius:70px;
+    padding:30px 15px;
+    text-align:center;
+    border:5px solid #2ecc71;
+    margin:10px 0 25px;
+}
+
+.operacao{
+    font-size:4rem;
+    font-weight:800;
+    color:#2c3e50;
+}
+
+/* OPÇÕES */
+
+.opcoes{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:15px;
+    margin:20px 0;
+}
+
+.opcao-btn{
+    background:#2ecc71;
+    border:none;
+    padding:20px 5px;
+    border-radius:60px;
+    font-size:2.2rem;
+    font-weight:bold;
+    color:white;
+    box-shadow:0 8px 0 #089131;
+    cursor:pointer;
+    border:3px solid white;
+    transition:0.1s;
+}
+
+.opcao-btn:hover{
+    transform:translateY(-4px);
+}
+
+.opcao-btn:active{
+    transform:translateY(5px);
+    box-shadow:0 3px 0 #2452b4;
+}
+
+/* FIM */
+
+.fim-jogo-box{
+    background:#ffffff;
+    border-radius:50px;
+    padding:30px 15px;
+    text-align:center;
+    border:6px solid #2ecc71;
+    margin:20px 0;
+}
+
+.btn-fim{
+    background:#2ecc71;
+    border:none;
+    padding:18px 30px;
+    border-radius:50px;
+    font-size:1.8rem;
+    font-weight:bold;
+    box-shadow:0 6px 0 #1e8b4c;
+    cursor:pointer;
+    border:3px solid white;
+    margin-top:20px;
+    color: #ffffff;
+}
+
+/* RESPONSIVO */
+
+@media(max-width:600px){
+
+    .shuckle-title{
+        font-size:3rem;
+    }
+
+    .operacao{
+        font-size:3rem;
+    }
+
+    .opcao-btn{
+        font-size:1.6rem;
+    }
+
+    .opcoes{
+        grid-template-columns:1fr;
+    }
+}
+
+</style>
+</head>
+<body>
+<audio id="bgMusic" loop>
+  <source src="../musicas/audio.mp3" type="audio/mpeg">
+</audio>
+<div class="main-panel">
+    <div class="header">
+        <div class="logo-placeholder"></div>
+        <div class="shuckle-title">
+            <span class="s-letter">S</span>
+            <span class="h-letter">H</span>
+            <span class="u-letter">U</span>
+            <span class="c-letter">C</span>
+            <span class="k-letter">K</span>
+            <span class="l-letter">L</span>
+            <span class="e-letter">E</span>
+        </div>
+        <div class="header-buttons">
+            <button class="btn-header" id="btnBack" title="Voltar" onclick="voltarParaHome()">
+                <img src="../img/voltar.png" alt="Voltar" class="header-icon">
+            </button>
+            <button class="btn-header" id="btnSettings" onclick="irConfiguracoes()" style="background:#2ecc71; box-shadow: 0 4px 0 #089131;" title="Configurações">
+                <img src="../img/configuracoes.png" alt="Configurações" class="header-icon">
+            </button>
+        </div>
+    </div>
+
+    <!-- JOGO -->
+
+    <div class="math-game-screen">
+        <div class="math-header">
+            <div id="vidasDisplay">
+                ❤️❤️❤️
+            </div>
+            <div class="progresso" id="progressoDisplay">
+                Conta 1/20
+            </div>
+        </div>
+        <div id="jogoAtivoArea">
+            <div class="questao-container">
+                <div class="operacao" id="operacaoTexto">
+                    3 + 4
+                </div>
+            </div>
+            <div class="opcoes" id="opcoesContainer"></div>
+        </div>
+        <div id="telaFimMatematica" style="display:none;"></div>
+    </div>
+</div>
+<script src="../js/global.js"></script>
+<script src="../audio.js"></script>
+<script>
+
+    /* voltar para o menu */
+
+    function voltarParaHome() {
+    window.location.href = '../assets/index.html';
+    // ou
+    // window.location.href = '/assets/index.html';
+}
+
+    function irConfiguracoes() {
+    window.location.href = '../assets/configuracoes.html';
+}
+
+const vidasDisplay = document.getElementById('vidasDisplay');
+const progressoDisplay = document.getElementById('progressoDisplay');
+const operacaoTexto = document.getElementById('operacaoTexto');
+const opcoesContainer = document.getElementById('opcoesContainer');
+const jogoAtivoArea = document.getElementById('jogoAtivoArea');
+const telaFimDiv = document.getElementById('telaFimMatematica');
+
+let vidas = 3;
+let questaoAtual = 0;
+let perguntas = [];
+let jogoAtivo = false;
+
+/* GERAR PERGUNTAS */
+
+function gerarPerguntas(){
+
+    let q = [];
+
+    for(let i=0;i<5;i++){
+
+        let a = Math.floor(Math.random()*5)+1;
+        let b = Math.floor(Math.random()*5)+1;
+
+        q.push({
+            texto:`${a} + ${b}`,
+            resposta:a+b
+        });
+    }
+
+    for(let i=0;i<5;i++){
+
+        if(Math.random()>0.5){
+
+            let a = Math.floor(Math.random()*7)+3;
+            let b = Math.floor(Math.random()*5)+1;
+
+            q.push({
+                texto:`${a} - ${b}`,
+                resposta:a-b
+            });
+
+        }else{
+
+            let a = Math.floor(Math.random()*6)+5;
+            let b = Math.floor(Math.random()*5)+2;
+
+            q.push({
+                texto:`${a} + ${b}`,
+                resposta:a+b
+            });
+        }
+    }
+
+    for(let i=0;i<5;i++){
+
+        let a = Math.floor(Math.random()*4)+2;
+        let b = Math.floor(Math.random()*5)+2;
+
+        q.push({
+            texto:`${a} × ${b}`,
+            resposta:a*b
+        });
+    }
+
+    for(let i=0;i<5;i++){
+
+        let tipo = Math.random();
+
+        if(tipo < 0.6){
+
+            let a = Math.floor(Math.random()*7)+6;
+            let b = Math.floor(Math.random()*4)+3;
+
+            q.push({
+                texto:`${a} × ${b}`,
+                resposta:a*b
+            });
+
+        }else{
+
+            let a = Math.floor(Math.random()*20)+10;
+            let b = Math.floor(Math.random()*15)+5;
+
+            q.push({
+                texto:`${a} + ${b}`,
+                resposta:a+b
+            });
+        }
+    }
+
+    return q;
+}
+
+/* OPÇÕES */
+
+function gerarOpcoes(correta){
+
+    let opcoes = [correta];
+
+    while(opcoes.length < 4){
+
+        let desvio = Math.floor(Math.random()*7)+2;
+
+        let sinal = Math.random()>0.5 ? 1 : -1;
+
+        let errada = correta + (sinal*desvio);
+
+        if(errada < 0){
+            errada = correta + desvio;
+        }
+
+        if(!opcoes.includes(errada)){
+
+            opcoes.push(errada);
+        }
+    }
+
+    return opcoes.sort(() => Math.random()-0.5);
+}
+
+/* INICIAR */
+
+function iniciarJogo(){
+
+    perguntas = gerarPerguntas();
+
+    vidas = 3;
+
+    questaoAtual = 0;
+
+    jogoAtivo = true;
+
+    telaFimDiv.style.display = 'none';
+
+    jogoAtivoArea.style.display = 'block';
+
+    atualizarInterface();
+}
+
+/* INTERFACE */
+
+function atualizarInterface(){
+
+    vidasDisplay.innerText =
+        '❤️'.repeat(vidas) +
+        '🖤'.repeat(3-vidas);
+
+    progressoDisplay.innerText =
+        `Conta ${questaoAtual+1}/20`;
+
+    if(questaoAtual >= 20){
+
+        mostrarFim('win');
+        return;
+    }
+
+    if(vidas <= 0){
+
+        mostrarFim('lose');
+        return;
+    }
+
+    let pergunta = perguntas[questaoAtual];
+
+    operacaoTexto.innerText = pergunta.texto;
+
+    let opcoes = gerarOpcoes(pergunta.resposta);
+
+    opcoesContainer.innerHTML = '';
+
+    opcoes.forEach(valor => {
+
+        let btn = document.createElement('button');
+
+        btn.className = 'opcao-btn';
+
+        btn.innerText = valor;
+
+        btn.onclick = () =>
+            verificarResposta(valor, pergunta.resposta);
+
+        opcoesContainer.appendChild(btn);
+    });
+}
+
+/* VERIFICAR */
+
+function verificarResposta(escolha, correta){
+
+    if(escolha === correta){
+
+        questaoAtual++;
+
+    }else{
+
+        vidas--;
+    }
+
+    atualizarInterface();
+}
+
+/* FIM */
+
+function mostrarFim(tipo){
+
+    jogoAtivoArea.style.display = 'none';
+
+    telaFimDiv.style.display = 'block';
+
+    let mensagem =
+        tipo === 'win'
+        ? 'PARABÉNS! Você venceu!'
+        : 'TENTE NOVAMENTE! Você perdeu!';
+
+    telaFimDiv.innerHTML = `
+
+        <div class="fim-jogo-box">
+
+            <div style="font-size:3rem;">
+                ${tipo === 'win' ? '🏆' : '😢'}
+            </div>
+
+            <div style="font-size:2rem; margin:20px 0;">
+                ${mensagem}
+            </div>
+
+            <button class="btn-fim"
+            onclick="location.reload()">
+
+                Jogar novamente
+
+            </button>
+
+        </div>
+    `;
+}
+
+iniciarJogo();
+
+const music = document.getElementById('bgMusic');
+
+function startMusic() {
+
+    if (!somEstaAtivo()) {
+        return;
+    }
+
+    music.volume = volumeMusica();
+
+    music.play()
+
+        .then(() => {
+            document.removeEventListener('click', startMusic);
+            document.removeEventListener('touchstart', startMusic);
+            document.removeEventListener('keydown', startMusic);
+        })
+
+        .catch(err => {
+            console.warn('Não foi possível tocar o áudio:', err);
+        });
+}
+
+document.addEventListener('click', startMusic);
+document.addEventListener('touchstart', startMusic);
+document.addEventListener('keydown', startMusic);
+
+</script>
+
+</body>
+</html>

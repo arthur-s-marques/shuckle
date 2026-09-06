@@ -1,0 +1,144 @@
+@font-face {
+    font-family: 'Comic'; /* Nome que você usará no restante do CSS */
+    src: url('../fontes/comicbd.woff2') format('woff2'); /* Caminho relativo do CSS para a fonte */
+    font-weight: normal;
+    font-style: normal;
+}
+
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Comic', 'Arial', sans-serif;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+body {
+    min-height: 100vh;
+    background-color: #fdf8f0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    overflow: hidden;
+}
+
+/* Cada camada é um pseudo-elemento ou div separado,
+   com tamanho maior que a tela para nunca mostrar borda */
+body::before,
+body::after {
+    content: '';
+    position: fixed;
+    inset: -200px; /* extrapola a tela em todos os lados */
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Camada 1 — pontos menores, mais lentos */
+body::before {
+    background-image:
+        radial-gradient(circle at 50px 70px,  #ffeacb 3px, transparent 3px),
+        radial-gradient(circle at 80px 120px, #ffddb0 4px, transparent 4px);
+    background-size:
+        120px 80px,
+        200px 200px;
+    animation: driftSlow 18s linear infinite;
+}
+
+/* Camada 2 — pontos maiores, mais rápidos */
+body::after {
+    background-image:
+        radial-gradient(circle at 200px 40px,  #f5d5b0 5px, transparent 5px),
+        radial-gradient(circle at 350px 280px, #f0cfaa 6px, transparent 6px),
+        radial-gradient(circle at 700px 180px, #f5dcc0 7px, transparent 7px);
+    background-size:
+        300px 300px,
+        400px 400px,
+        250px 250px;
+    animation: driftFast 18s linear infinite;
+}
+
+/* Movimento diagonal: translateX percorre exatamente 1 tile,
+   translateY é ~27% disso para simular 15° de inclinação
+   (tan 15° ≈ 0.268). Assim o padrão casa perfeitamente no loop. */
+@keyframes driftSlow {
+    from { transform: translate(0, 0); }
+    to   { transform: translate(-200px, -54px); }  /* 200px tile, 200×tan15°≈54 */
+}
+
+@keyframes driftFast {
+    from { transform: translate(0, 0); }
+    to   { transform: translate(-300px, -80px); }  /* 300px tile, 300×tan15°≈80 */
+}
+
+/* Garante que o conteúdo fique acima das camadas de fundo */
+.main-panel,
+.header,
+[class] {
+    position: relative;
+    z-index: 1;
+}
+
+.main-panel{
+    background-color:rgba(247, 239, 226, 0.85);
+    backdrop-filter:blur(3px);
+    border-radius:50px 50px 40px 40px;
+    box-shadow:
+        0 20px 30px rgba(0,0,0,0.08),
+        inset 0 2px 5px rgba(255,255,255,0.8);
+    width:1200px;
+    max-width:98%;
+    padding:20px 20px 30px 20px;
+    border:5px solid rgba(255,255,200,0.6);
+}
+
+.header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:20px;
+    flex-wrap:wrap;
+}
+
+
+.logo-placeholder{
+    width:10px;
+    height:10px;
+    background:linear-gradient(145deg,#ffeacc,#f8dbb0);
+    border-radius:40% 60% 40% 60% / 50% 40% 60% 50%;
+    box-shadow:
+        6px 8px 0 rgba(190,150,100,0.3),
+        inset -3px -3px 8px #ddb582,
+        inset 4px 4px 10px #fff8e7;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:1.2rem;
+    font-weight:bold;
+    color:#ba9f7b;
+    border:3px dashed #f5cba0;
+}
+
+.shuckle-title{
+    font-size:6rem;
+    font-weight:800;
+    line-height:1;
+    text-shadow:5px 5px 0 rgba(0,0,0,0.05);
+}
+
+.s-letter{ color:#e63946; }
+.h-letter{ color:#3498db; }
+.u-letter{ color:#2ecc71; }
+.c-letter{ color:#f1c40f; }
+.k-letter{ color:#3498db; }
+.l-letter{ color:#2ecc71; }
+.e-letter{ color:#e84342; }
+
+.header-icon {
+    width: 29px;
+    height: 29px;
+    object-fit: contain;
+}

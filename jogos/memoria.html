@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5">
+    <link rel="stylesheet" href="global.css">
+    <title>SHUCKLE MEMORY - Jogo da Memória</title>
+    <style>
+        
+    .btn-header {
+    background: #e63946;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 30px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: white;
+    box-shadow: 0 4px 0 #b31e29;
+    cursor: pointer;
+    border: 2px solid white;
+    transition: 0.1s;
+}
+        /* ÁREA INTERNA DO JOGO (COM FOCO NO VERMELHO) */
+        .game-screen {
+            background: rgba(255, 250, 240, 0.9);
+            border-radius: 40px;
+            padding: 30px 20px;
+            border: 4px solid #e63946;
+            min-height: 400px;
+        }
+
+        /* HEADER INTERNO DE STATUS */
+        .status-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #ffffff;
+            padding: 10px 20px;
+            border-radius: 40px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 10px;
+            border: 4px solid #e63946;
+            color: #2c3e50;
+        }
+
+        .status-item {
+            background: #fdf8f0;
+            padding: 5px 15px;
+            border-radius: 30px;
+            border: 2px solid #e63946;
+        }
+
+        .timer-warning {
+            animation: timerBlink 0.5s infinite;
+            color: #ff9f1c !important;
+            border-color: #ff9f1c !important;
+        }
+
+        @keyframes timerBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* MENU DE SELEÇÃO DE FASES */
+        .phase-select-container {
+            background: white;
+            border-radius: 40px;
+            padding: 30px 20px;
+            text-align: center;
+            border: 5px solid #e63946;
+        }
+
+        .phase-select-container h3 {
+            font-size: 2.2rem;
+            color: #2c3e50;
+            margin-bottom: 25px;
+        }
+
+        .phase-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .btn-phase {
+            background: #e63946;
+            border: none;
+            padding: 20px 25px;
+            border-radius: 40px;
+            font-size: 1.6rem;
+            font-weight: bold;
+            color: white;
+            box-shadow: 0 8px 0 #b31e29;
+            cursor: pointer;
+            border: 3px solid white;
+            transition: 0.1s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn-phase:hover {
+            transform: translateY(-4px);
+        }
+
+        .btn-phase:active {
+            transform: translateY(5px);
+            box-shadow: 0 3px 0 #b31e29;
+        }
+
+        .phase-info {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        /* GRID DE CARTAS MANTENDO SINTONIA (VERSO VERMELHO) */
+        .memory-grid {
+            display: grid;
+            gap: 12px;
+            width: 100%;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .card {
+            aspect-ratio: 1;
+            background: #e63946;
+            border-radius: 25px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+            box-shadow: 0 6px 0 #b31e29;
+            border: 3px solid white;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+        }
+
+        .card.flipped {
+            background: white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            transform: scale(0.98);
+        }
+
+        .card.matched {
+            background: #ffebee;
+            border-color: #e63946;
+            box-shadow: none;
+            cursor: default;
+            transform: scale(0.95);
+            animation: matchPulse 0.4s ease;
+        }
+
+        .card.wrong {
+            background: #ffcdd2;
+            border-color: #b71c1c;
+            box-shadow: 0 4px 0 #7f0000;
+            animation: shake 0.4s;
+        }
+
+        @keyframes matchPulse {
+            0%, 100% { transform: scale(0.95); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-6px); }
+            75% { transform: translateX(6px); }
+        }
+
+        .card-content {
+            display: none;
+        }
+
+        .card.flipped .card-content,
+        .card.matched .card-content {
+            display: block;
+        }
+
+        .card-back {
+            color: white;
+            font-weight: bold;
+        }
+
+        .card.flipped .card-back,
+        .card.matched .card-back {
+            display: none;
+        }
+
+        /* TELA DE FIM DE JOGO (IGUAL À DO JOGO MATEMÁTICA) */
+        .fim-jogo-box {
+            background: #ffffff;
+            border-radius: 50px;
+            padding: 40px 20px;
+            text-align: center;
+            border: 6px solid #e63946;
+            margin: 10px 0;
+        }
+
+        .result-stats {
+            max-width: 450px;
+            margin: 20px auto;
+            text-align: left;
+            background: #fdf8f0;
+            padding: 20px;
+            border-radius: 25px;
+            border: 2px dashed #e63946;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #ffeacb;
+            font-size: 1.2rem;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .stat-row:last-child {
+            border-bottom: none;
+        }
+
+        .btn-fim {
+            background: #e63946;
+            border: none;
+            padding: 18px 35px;
+            border-radius: 50px;
+            font-size: 1.6rem;
+            font-weight: bold;
+            color: white;
+            box-shadow: 0 6px 0 #b31e29;
+            cursor: pointer;
+            border: 3px solid white;
+            margin: 10px;
+            transition: 0.1s;
+        }
+
+        .btn-fim:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #b31e29;
+        }
+
+        .btn-fim-menu {
+            background: #e63946;
+            box-shadow: 0 6px 0 #b31e29;
+        }
+
+        .btn-fim-menu:active {
+            box-shadow: 0 2px 0 #b31e29;
+        }
+
+        /* RESPONSIVO */
+        @media(max-width:768px){
+            .shuckle-title { font-size: 3rem; }
+            .phase-grid { grid-template-columns: 1fr; }
+            .card { font-size: 1.8rem; border-radius: 15px; }
+            .status-header { font-size: 1.1rem; }
+            .btn-phase { font-size: 1.3rem; }
+        }
+    </style>
+</head>
+<body>
+<audio id="bgMusic" loop>
+  <source src="../musicas/audio.mp3" type="audio/mpeg">
+</audio>
+<div class="main-panel">
+    <div class="header">
+        <div class="logo-placeholder"></div>
+        <div class="shuckle-title">
+            <span class="s-letter">S</span>
+            <span class="h-letter">H</span>
+            <span class="u-letter">U</span>
+            <span class="c-letter">C</span>
+            <span class="k-letter">K</span>
+            <span class="l-letter">L</span>
+            <span class="e-letter">E</span>
+        </div>
+        <div class="header-buttons">
+            <button class="btn-header" id="btnBack" title="Voltar" onclick="voltarParaHome()">
+                <img src="../img/voltar.png" alt="Voltar" class="header-icon">
+            </button>
+            <button class="btn-header" id="btnSettings" onclick="irConfiguracoes()" style="background:#e63946; box-shadow: 0 4px 0 #b31e29;" title="Configurações">
+                <img src="../img/configuracoes.png" alt="Configurações" class="header-icon">
+            </button>
+        </div>
+    </div>
+
+    <div class="game-screen" id="gameArea">
+        </div>
+</div>
+
+<script src="../js/global.js"></script>
+<script src="../audio.js"></script>
+<script>
+
+        function voltarParaHome() {
+    window.location.href = '../assets/index.html';
+    // ou
+    // window.location.href = '/assets/index.html';
+}
+
+    function irConfiguracoes() {
+    window.location.href = '../assets/configuracoes.html';
+}
+    (function() {
+
+        const EMOJI_PAIRS = [
+            '🐼', '🐨', '🦊', '🐸', '🐵', '🐶', '🐱', '🦁',
+            '🐯', '🐮', '🐷', '🐰', '🐻', '🐔', '🐧', '🦄',
+            '🐙', '🦋', '🐞', '🐝', '🦀', '🐠', '🦜', '🐢',
+            '🌸', '🌺', '🌻', '🌹', '🍎', '🍊', '🍋', '🍇',
+            '⭐', '🌈', '🎈', '🎨', '🚗', '✈️', '🚀', '🎵',
+            '⚽', '🎾', '🏀', '🎸', '📚', '✏️', '🔔', '💡'
+        ];
+
+        const PHASES = {
+            iniciante: { name: 'Iniciante', grid: [3, 4], pairs: 6, emoji: '' },
+            facil: { name: 'Fácil', grid: [4, 4], pairs: 8, emoji: '' },
+            intermediario: { name: 'Intermediário', grid: [4, 5], pairs: 10, emoji: '' },
+            dificil: { name: 'Difícil', grid: [6, 6], pairs: 18, emoji: '' },
+            muitoDificil: { name: 'Muito Difícil', grid: [8, 7], pairs: 28, emoji: '' }
+        };
+
+        const PHASE_CONFIG = {
+            iniciante: { tempo: 60, chances: 15 },
+            facil: { tempo: 90, chances: 25 },
+            intermediario: { tempo: 120, chances: 40 },
+            dificil: { tempo: 180, chances: 60 },
+            muitoDificil: { tempo: 300, chances: 100 }
+        };
+
+        const gameArea = document.getElementById('gameArea');
+        
+        let currentPhase = null;
+        let cards = [];
+        let flippedCards = [];
+        let matchedPairs = 0;
+        let attempts = 0;
+        let maxAttempts = 0;
+
+        let timerInterval = null;
+        let timeLeft = 0;
+        let currentTimeLimit = 0;
+        let gameActive = false;
+        let canFlip = true;
+
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        function renderPhaseSelect() {
+            gameArea.innerHTML = `
+                <div class="phase-select-container">
+                    <h3>Escolha a Fase</h3>
+                    <div class="phase-grid">
+                        ${Object.entries(PHASES).map(([key, phase]) => `
+                            <button class="btn-phase" onclick="window._startPhase('${key}')">
+                                <span>${phase.emoji} ${phase.name}</span>
+                                <div class="phase-info">
+                                    <span>Tam: ${phase.grid[0]}x${phase.grid[1]}</span>
+                                    <span>${phase.pairs} pares</span>
+                                </div>
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function startPhase(phaseKey) {
+            currentPhase = PHASES[phaseKey];
+            currentTimeLimit = PHASE_CONFIG[phaseKey].tempo;
+            maxAttempts = PHASE_CONFIG[phaseKey].chances;
+            const [rows, cols] = currentPhase.grid;
+            const pairsNeeded = currentPhase.pairs;
+
+            const shuffledEmojis = shuffleArray(EMOJI_PAIRS);
+            const selectedEmojis = shuffledEmojis.slice(0, pairsNeeded);
+            
+            let cardEmojis = [...selectedEmojis, ...selectedEmojis];
+            cardEmojis = shuffleArray(cardEmojis);
+
+            cards = cardEmojis.map((emoji, index) => ({
+                id: index,
+                emoji: emoji,
+                flipped: false,
+                matched: false
+            }));
+
+            flippedCards = [];
+            matchedPairs = 0;
+            attempts = 0;
+            gameActive = true;
+            canFlip = true;
+            timeLeft = currentTimeLimit;
+
+            renderGameGrid(rows, cols);
+            startTimer();
+        }
+
+        function renderGameGrid(rows, cols) {
+            gameArea.innerHTML = `
+                <div class="status-header">
+                    <div class="status-item">Nível: ${currentPhase.name}</div>
+                    <div class="status-item" id="attemptsCounter">Erros: 0/${maxAttempts}</div>
+                    <div class="status-item" id="timerDisplay">⏱️ ${currentTimeLimit}s</div>
+                    <div class="status-item">Pares: <span id="pairsFound">0</span>/${currentPhase.pairs}</div>
+                </div>
+                <div class="memory-grid" style="grid-template-columns: repeat(${cols}, 1fr);">
+                    ${cards.map((card, index) => `
+                        <div class="card" data-index="${index}" onclick="window._flipCard(${index})">
+                            <span class="card-back">❔</span>
+                            <span class="card-content">${card.emoji}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            timeLeft = currentTimeLimit;
+            updateTimerDisplay();
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+                
+                if (timeLeft <= 5) {
+                    const timerEl = document.getElementById('timerDisplay');
+                    if (timerEl) timerEl.classList.add('timer-warning');
+                }
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    handleTimeUp();
+                }
+            }, 1000);
+        }
+
+        function resetTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            timeLeft = currentTimeLimit;
+            updateTimerDisplay();
+            const timerEl = document.getElementById('timerDisplay');
+            if (timerEl) timerEl.classList.remove('timer-warning');
+            startTimer();
+        }
+
+        function updateTimerDisplay() {
+            const timerEl = document.getElementById('timerDisplay');
+            if (timerEl) {
+                timerEl.textContent = `⏱️ ${timeLeft}s`;
+            }
+        }
+
+        function handleTimeUp() {
+            if (!gameActive) return;
+            gameActive = false;
+            canFlip = false;
+            gameOver(false, 'tempo');
+        }
+
+        function flipCard(index) {
+            if (!gameActive || !canFlip) return;
+            
+            const card = cards[index];
+            if (!card || card.flipped || card.matched) return;
+            if (flippedCards.length >= 2) return;
+            
+            card.flipped = true;
+            flippedCards.push(card);
+            updateGridDisplay();
+            
+            if (flippedCards.length === 2) {
+                checkMatch();
+            }
+        }
+
+        function checkMatch() {
+            canFlip = false;
+            const [card1, card2] = flippedCards;
+            
+            if (card1.emoji === card2.emoji) {
+                setTimeout(() => {
+                    card1.matched = true;
+                    card2.matched = true;
+                    matchedPairs++;
+                    
+                    updateGridDisplay();
+                    updatePairsDisplay();
+                    
+                    flippedCards = [];
+                    canFlip = true;
+                    resetTimer();
+                    
+                    if (matchedPairs === currentPhase.pairs) {
+                        gameActive = false;
+                        if (timerInterval) clearInterval(timerInterval);
+                        setTimeout(() => gameOver(true), 500);
+                    }
+                }, 300);
+                
+                setTimeout(() => {
+                    const cardElements = document.querySelectorAll('.card');
+                    if (cardElements[cards.indexOf(card1)]) cardElements[cards.indexOf(card1)].classList.add('matched');
+                    if (cardElements[cards.indexOf(card2)]) cardElements[cards.indexOf(card2)].classList.add('matched');
+                }, 50);
+                
+            } else {
+                attempts++;
+                setTimeout(() => {
+                    const cardElements = document.querySelectorAll('.card');
+                    const idx1 = cards.indexOf(card1);
+                    const idx2 = cards.indexOf(card2);
+                    
+                    if (cardElements[idx1]) cardElements[idx1].classList.add('wrong');
+                    if (cardElements[idx2]) cardElements[idx2].classList.add('wrong');
+                    
+                    setTimeout(() => {
+                        card1.flipped = false;
+                        card2.flipped = false;
+                        flippedCards = [];
+                        canFlip = true;
+                        
+                        updateGridDisplay();
+                        updateAttemptsDisplay();
+                        
+                        if (cardElements[idx1]) cardElements[idx1].classList.remove('wrong');
+                        if (cardElements[idx2]) cardElements[idx2].classList.remove('wrong');
+                    }, 400);
+                }, 200);
+            }
+        }
+
+        function updateGridDisplay() {
+            const cardElements = document.querySelectorAll('.card');
+            cardElements.forEach((el, index) => {
+                const card = cards[index];
+                if (card) {
+                    if (card.matched) {
+                        el.classList.add('matched');
+                        el.classList.remove('flipped');
+                    } else if (card.flipped) {
+                        el.classList.add('flipped');
+                        el.classList.remove('matched');
+                    } else {
+                        el.classList.remove('flipped', 'matched');
+                    }
+                }
+            });
+        }
+
+        function updateAttemptsDisplay() {
+            const el = document.getElementById('attemptsCounter');
+            if (el) el.textContent = `❌ Erros: ${attempts}/${maxAttempts}`;
+
+            if (attempts >= maxAttempts) {
+                gameActive = false;
+                if (timerInterval) clearInterval(timerInterval);
+                setTimeout(() => gameOver(false, 'erros'), 300);
+            }
+        }
+
+        function updatePairsDisplay() {
+            const el = document.getElementById('pairsFound');
+            if (el) el.textContent = matchedPairs;
+        }
+
+        function gameOver(won, motivo) {
+            if (timerInterval) clearInterval(timerInterval);
+            gameActive = false;
+            
+            const accuracy = attempts > 0 ? Math.round((matchedPairs / (matchedPairs + attempts)) * 100) : 100;
+            
+            let message = won ? 'PARABÉNS! Você venceu!' : (motivo === 'tempo' ? 'Tempo Esgotado! TENTE NOVAMENTE!' : 'Você perdeu por erros! TENTE NOVAMENTE!');
+            let emoji = won ? '🏆' : '😢';
+            
+            gameArea.innerHTML = `
+                <div class="fim-jogo-box">
+                    <div style="font-size:4rem;">${emoji}</div>
+                    <div style="font-size:2.2rem; margin:15px 0; font-weight:bold; color:#2c3e50;">${message}</div>
+                    
+                    <div class="result-stats">
+                        <div class="stat-row"><span>Modo:</span><span>${currentPhase.name}</span></div>
+                        <div class="stat-row"><span>Erros Cometidos:</span><span>${attempts}</span></div>
+                        <div class="stat-row"><span>Pares Combinados:</span><span>${matchedPairs}/${currentPhase.pairs}</span></div>
+                        <div class="stat-row"><span>Precisão:</span><span>${accuracy}%</span></div>
+                    </div>
+
+                    <button class="btn-fim" onclick="window._replayPhase()">Jogar novamente</button>
+                    <button class="btn-fim btn-fim-menu" onclick="window._backToMenu()">Escolher Fase</button>
+                </div>
+            `;
+        }
+
+        function backToMenu() {
+            if (timerInterval) clearInterval(timerInterval);
+            gameActive = false;
+            renderPhaseSelect();
+        }
+
+        document.getElementById('btnBack').addEventListener('click', () => {
+            if (timerInterval) clearInterval(timerInterval);
+            gameActive = false;
+            renderPhaseSelect();
+        });
+
+        document.getElementById('btnSettings').addEventListener('click', () => {
+            alert('⚙️ SHUCKLE MEMORY\n\n• Interface e fundos unificados à Matemática!\n• Foco visual avermelhado (#e63946)\n• Desafio dinâmico por tempo e limite de erros.');
+        });
+
+        window._startPhase = startPhase;
+        window._flipCard = flipCard;
+        window._replayPhase = () => startPhase(
+            Object.keys(PHASES).find(key => PHASES[key].name === currentPhase?.name) || 'iniciante'
+        );
+        window._backToMenu = backToMenu;
+
+        renderPhaseSelect();
+    })();
+
+    const music = document.getElementById('bgMusic');
+
+function startMusic() {
+
+    if (!somEstaAtivo()) {
+        return;
+    }
+
+    music.volume = volumeMusica();
+
+    music.play()
+
+        .then(() => {
+            document.removeEventListener('click', startMusic);
+            document.removeEventListener('touchstart', startMusic);
+            document.removeEventListener('keydown', startMusic);
+        })
+
+        .catch(err => {
+            console.warn('Não foi possível tocar o áudio:', err);
+        });
+}
+
+document.addEventListener('click', startMusic);
+document.addEventListener('touchstart', startMusic);
+document.addEventListener('keydown', startMusic);
+</script>
+</body>
+</html>
